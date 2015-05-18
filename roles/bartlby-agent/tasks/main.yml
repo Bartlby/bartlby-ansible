@@ -13,6 +13,7 @@
     - cmake
     - gcc
     - libssl-dev
+    - libjson0-dev
     
 - name: "Get Bartlby-Agent Source"
   git:
