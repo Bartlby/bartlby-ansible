@@ -3,6 +3,18 @@
 ##
 ## Install Bartlby-Agent
 ##
+- name: Bartlby-Agent Packages
+  apt:
+    pkg: "{{ item }}"
+    state: installed
+  with_items:
+    - autotools
+    - autoreconf
+    - make
+    - cmake
+    - gcc
+    - libssl-dev
+    
 - name: "Get Bartlby-Agent Source"
   git:
     repo=https://github.com/Bartlby/bartlby-agent.git
