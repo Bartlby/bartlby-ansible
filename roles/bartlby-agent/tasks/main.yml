@@ -9,7 +9,6 @@
     state: installed
   with_items:
     - autoconf
-    - autoreconf
     - make
     - cmake
     - gcc
