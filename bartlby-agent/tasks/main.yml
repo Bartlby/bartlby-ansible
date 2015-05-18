@@ -1,0 +1,39 @@
+---
+
+##
+## Install Bartlby-Agent
+##
+- name: "Get Bartlby-Agent Source"
+  git:
+    repo=https://github.com/Bartlby/bartlby-agent.git
+    dest=/usr/local/src/bartlby-agent
+    version=development/stage
+    update=yes
+    force=yes
+    
+  register: agent_source
+
+- name: "Add Bartlby Group"
+  group: name=bartlby
+
+
+- name: "Add Bartlby User"
+  user: name=bartlby comment="Bartlby" group=bartlby
+
+- name: "Compile Bartlby-Agent"
+  shell: 'cd /usr/local/src/bartlby-agent;{{ item }}'
+  with_items:
+    - ./autogen.sh
+    - ./configure --enable-ssl --prefix=/opt/bartlby-agent
+    - make
+    - make install
+    - sh postinstall-pak
+  when: agent_source.changed
+
+- name: "Copy Bartlby Agent Config"
+  template: src=bartlby.cfg.j2 dest=/opt/bartlby-agent/
+
+- name: "Restart Bartlby-Agent"
+  apt: pkg=openbsd-inetd state=latest
+  notify:
+    - restart inetd

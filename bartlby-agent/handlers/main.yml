@@ -1,0 +1,9 @@
+- name: restart inetd
+  service: name=openbsd-inetd state=restarted
+
+#  - name: restart tahoe
+#  shell: "{{ item }}"
+#  with_items:
+#    - pkill tahoe
+#    - tahoe start /home/tahoe/intro
+#    - tahoe start /home/tahoe/node
