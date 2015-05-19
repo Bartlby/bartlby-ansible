@@ -1,0 +1,15 @@
+---
+
+##
+## Install base configuration for all servers
+##
+
+- name: Install/Update Bartlby-Dev Box
+  hosts: all
+  remote_user: root # It's important here
+  roles:
+    - bartlby-agent
+    - bartlby-ui
+    - bartlby-php
+    - bartlby-core
+    - bartlby-plugins
