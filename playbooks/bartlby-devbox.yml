@@ -17,10 +17,14 @@
       - name: bartlby_ansible_new_n
         encoding: latin1
         collation: latin1_general_ci
-        
+
   roles:
     - bartlby-agent
     - bartlby-ui
     - bartlby-php
     - bartlby-core
     - bartlby-plugins
+
+  post_tasks:
+    - name: Update Deploy Script
+      get_url: url=https://raw.githubusercontent.com/Bartlby/bartlby-docker/master/deploy.sh dest=/opt/bartlby/deploy.sh mode=0777
