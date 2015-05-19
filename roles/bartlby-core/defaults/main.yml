@@ -2,4 +2,5 @@
 bartlby_mysql_user: root
 barlby_mysql_password: docker
 bartlby_mysql_host: localhost
-bartlby_mysql_db: bartlby_ansible_new_n
+bartlby_mysql_db: bartlby
+bartlby_core_install_mysql: true

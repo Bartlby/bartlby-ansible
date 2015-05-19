@@ -18,6 +18,11 @@
         encoding: latin1
         collation: latin1_general_ci
 
+  pre_tasks:
+    - name: Update APT caches
+      apt: update_cache=yes
+
+
   roles:
     - bartlby-agent
     - bartlby-php
