@@ -1,0 +1,50 @@
+---
+
+##
+## Install Bartlby-Agent
+##
+- name: Bartlby-Php Packages
+  apt:
+    pkg: "{{ item }}"
+    state: installed
+  with_items:
+    - autoconf
+    - build-essential
+    - cmake
+    - libssl-dev
+    - libjson0-dev
+    - php5-dev
+
+- name: "Get Bartlby-Php Source"
+  git:
+    repo=https://github.com/Bartlby/bartlby-php.git
+    dest=/usr/local/src/bartlby-php
+    version=development/stage
+    update=yes
+    force=yes
+
+  register: bartlby_php_source
+
+- name: "Compile Bartlby-Php"
+  shell: 'cd /usr/local/src/bartlby-php;{{ item }}'
+  with_items:
+    - phpize
+    - ./configure
+    - make clean
+    - make
+    - make install
+  when: bartlby_php_source.changed
+
+
+- name: Place BARTLBY configuration file in place for apache2
+  template:
+    src: bartlby.ini.j2
+    dest: "/etc/php5/mods-available/bartlby.ini"
+    owner: root
+    group: root
+    force: yes
+    mode: 0644
+
+
+- name: Symlink bartlby extension to enabled mods
+  file: src=/etc/php5/mods-available/bartlby.ini dest=/etc/php5/conf.d/bartlby.ini state=link

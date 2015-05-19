@@ -1,0 +1,12 @@
+---
+
+##
+## Install base configuration for all servers
+##
+
+- name: Install/Update Bartlby-PHP
+  hosts: all
+  remote_user: root # It's important here
+  roles:
+    - bartlby-php
+
