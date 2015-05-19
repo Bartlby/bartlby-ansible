@@ -5,9 +5,7 @@
 ## and monitoring plugins
 ##
 - name: Bartlby-Plugins Packages
-  apt:
-    pkg: "{{ item }}"
-    state: installed
+  apt: state=installed pkg={{ item }}
   with_items:
     - nagios-plugins
     - build-essential

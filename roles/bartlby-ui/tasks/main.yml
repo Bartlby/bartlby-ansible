@@ -4,9 +4,7 @@
 ## Install Bartlby-Agent
 ##
 - name: Bartlby-ui Packages
-  apt:
-    pkg: "{{ item }}"
-    state: installed
+  apt: state=installed pkg={{ item }}
   with_items:
     - libapache2-mod-php5
     - php5-dev

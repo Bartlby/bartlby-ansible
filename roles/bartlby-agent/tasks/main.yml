@@ -4,9 +4,7 @@
 ## Install Bartlby-Agent
 ##
 - name: Bartlby-Agent Packages
-  apt:
-    pkg: "{{ item }}"
-    state: installed
+  apt: state=installed pkg={{ item }}
   with_items:
     - autoconf
     - make
@@ -15,7 +13,7 @@
     - libssl-dev
     - libjson0-dev
     - git
-    
+
 - name: "Get Bartlby-Agent Source"
   git:
     repo=https://github.com/Bartlby/bartlby-agent.git
@@ -23,7 +21,7 @@
     version=development/stage
     update=yes
     force=yes
-    
+
   register: agent_source
 
 - name: "Add Bartlby Group"

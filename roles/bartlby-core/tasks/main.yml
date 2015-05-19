@@ -4,9 +4,7 @@
 ## Install Bartlby-Agent
 ##
 - name: Bartlby-core Packages
-  apt:
-    pkg: "{{ item }}"
-    state: installed
+  apt: state=installed pkg={{ item }}
   with_items:
     - libjson0-dev
     - libjson0
