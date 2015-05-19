@@ -15,6 +15,7 @@
     - libjson0-dev
     - php5-dev
 
+
 - name: "Get Bartlby-Php Source"
   git:
     repo=https://github.com/Bartlby/bartlby-php.git
@@ -45,6 +46,8 @@
     force: yes
     mode: 0644
 
+- name: Check conf.d Folder
+  file: path=/etc/php5/conf.d/ state=directory
 
 - name: Symlink bartlby extension to enabled mods
   file: src=/etc/php5/mods-available/bartlby.ini dest=/etc/php5/conf.d/bartlby.ini state=link
