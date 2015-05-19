@@ -1,0 +1,149 @@
+---
+
+##
+## Install Bartlby-Agent
+##
+- name: Bartlby-ui Packages
+  apt:
+    pkg: "{{ item }}"
+    state: installed
+  with_items:
+    - libapache2-mod-php5
+    - php5-dev
+    - rrdtool
+    - libncurses5-dev
+    - libncursesw5-dev
+
+- name: "Add Bartlby Group"
+  group: name=bartlby
+
+
+- name: "Add Bartlby User"
+  user: name=bartlby comment="Bartlby" group=bartlby
+
+
+
+###check if already install
+- name: check installation state
+  stat: path=/usr/local/src/bartlby-ui.installed
+  register: ui_installed
+
+- name: Create Backup Folder
+  shell: "UQ=$$; mkdir -p /tmp/bartlby_backups.$UQ;echo /tmp/bartlby_backups.$UQ"
+  register: backup_folder
+  when: ui_installed.stat.exists == True
+
+- name: Backup UI data before updating
+  shell: "{{ item }}"
+  with_items:
+    - cp -pva /var/www/bartlby-ui/ui-extra.conf {{ backup_folder.stdout }}/
+    - cp -pva /var/www/bartlby-ui/rights/ {{ backup_folder.stdout }}/rights/
+    - cp -pva /var/www/bartlby-ui/store/ {{ backup_folder.stdout }}/store/
+  when: ui_installed.stat.exists == True
+
+
+- name: "Get Bartlby-ui Source"
+  git:
+    repo=https://github.com/Bartlby/bartlby-ui.git
+    dest=/var/www/bartlby-ui/
+    version=development/stage
+    update=yes
+    force=yes
+
+  register: bartlby_ui_source
+
+- name: Place NCURSES configuration file in place for apache2/cli
+  template:
+    src: ncurses.ini.j2
+    dest: "/etc/php5/mods-available/ncurses.ini"
+    owner: root
+    group: root
+    force: yes
+    mode: 0644
+
+- name: "Install ncurses pecl"
+  shell: "printf '\n'|pecl install ncurses"
+  register: pecl_result
+  changed_when: "pecl_result.rc == 0"
+  failed_when: "not (('already installed' in pecl_result.stdout) or ('install ok:' in pecl_result.stdout))"
+
+- name: Remove default vhost 2.4
+  file: path=/etc/apache2/sites-enabled/000-default state=absent
+
+- name: Remove default vhost 2.2
+  file: path=/etc/apache2/sites-enabled/default state=absent
+
+- name: Register Apache VHOST with rules etc
+  template: src=apache2.j2 dest=/etc/apache2/sites-enabled/vhosts.conf
+
+- name: Copy  pnp4nagios patch
+  template: src=pnp4patch.j2 dest=/usr/local/src/process_perfdata.pl.patch
+
+- name: add  ui-extra.conf
+  template: src=ui-extra.conf.j2 dest=/var/www/bartlby-ui/ mode=0777
+
+- name: download pnp4nagios
+  get_url: url=http://docs.pnp4nagios.org/_media/dwnld/pnp4nagios-head.tar.gz dest=/usr/local/src/ mode=0440
+  register: pnp4nagios
+
+
+- name: build pnp4nagios
+  shell: 'cd /usr/local/src/;{{ item }}'
+  with_items:
+    - tar xzvf pnp4nagios-head.tar.gz
+    - cd pnp4nagios-head; ./configure  --prefix=/opt/pnp4nagios --with-nagios-user=bartlby --with-nagios-group=root
+    - cd pnp4nagios-head; make all
+    - cd pnp4nagios-head; make install
+    - cd pnp4nagios-head; make install-html
+    - cd pnp4nagios-head; make install-processperfdata
+    - cd /opt/pnp4nagios/libexec/; patch -p1 process_perfdata.pl < /usr/local/src/process_perfdata.pl.patch
+  when: pnp4nagios.changed
+
+
+
+- name: "Create RRD folder"
+  action: file path={{ item }} state=directory mode=0777
+  with_items:
+      - /var/www/bartlby-ui/rrd/
+
+- name: link pnp4nagios into Bartlby-ui
+  file: src=/opt/pnp4nagios/var/perfdata dest=/var/www/bartlby-ui/pnp4data state=link
+
+- name: patch php.ini for short open tags
+  shell: '{{ item }}'
+  with_items:
+    - sed -i -e"s/^short_open_tag\s*=\s*Off/short_open_tag = On/" /etc/php5/apache2/php.ini
+    - sed -i -e"s/^short_open_tag\s*=\s*Off/short_open_tag = On/" /etc/php5/cli/php.ini
+
+- name: remove pnp4nagios install.php5
+  file: path=/opt/pnp4nagios/share/install.php state=absent
+
+- name: Create UI Cronjobs
+  cron: name="{{ item.name }}" minute="{{ item.minute }}" hour="{{ item.hour }}" job="{{ item.job }}" weekday="{{ item.weekday }}" state=present
+  with_items:
+      - { name: "pnp4nagios perfdata run", weekday: "*", hour: "*", minute: "*/10", job: "(/opt/pnp4nagios/libexec/process_perfdata.pl  -b /opt/pnp4nagios//var/perfdata.log)" }
+      - { name: "SiteManager SHM SYNC",    weekday: "*", hour: "*", minute: "*/2", job: "(cd /var/www/bartlby-ui/extensions/; php automated.php username=admin password=password script=SiteManager/cron.php sync=SHM)" }
+      - { name: "SiteManager DB SYNC",     weekday: "*", hour: "*", minute: "*/5", job: "(cd /var/www/bartlby-ui/extensions/; php automated.php username=admin password=password script=SiteManager/cron.php sync=DB)" }
+      - { name: "SiteManager init SYNC",    weekday: "*", hour: "*", minute: "*/5", job: "(cd /var/www/bartlby-ui/extensions/; php automated.php username=admin password=password script=SiteManager/cron.php sync=INIT)" }
+      - { name: "SiteManager restart SYNC", weekday: "*",    hour: "*", minute: "*/5", job: "(cd /var/www/bartlby-ui/extensions/; php automated.php username=admin password=password script=SiteManager/cron.php sync=RESTART)" }
+      - { name: "SiteManager genconf SYNC", weekday: "*",    hour: "*", minute: "*/10", job: "(cd /var/www/bartlby-ui/extensions/; php automated.php username=admin password=password script=SiteManager/cron.php sync=GENCONF)" }
+      - { name: "SiteManager folders SYNC", weekday: "*",   hour: "*", minute: "*/10", job: "(cd /var/www/bartlby-ui/extensions/; php automated.php username=admin password=password script=SiteManager/cron.php sync=FOLDERS)" }
+      - { name: "SiteManager cleanup SYNC", weekday: "*",    hour: "0", minute: "0", job: "(cd /var/www/bartlby-ui/extensions/; php automated.php username=admin password=password script=SiteManager/cron.php sync=CLEANUP)" }
+      - { name: "Auto Reports Daily",  weekday: "*", hour: "2", minute: "0", job: "(cd /var/www/bartlby-ui/extensions/; php automated.php username=admin password=password script=AutoReports/cron.php wich=daily)" }
+      - { name: "Auto Reports Weekly", weekday: "7", hour: "0", minute: "2", job: "(cd /var/www/bartlby-ui/extensions/; php automated.php username=admin password=password script=AutoReports/cron.php wich=weekly)" }
+      - { name: "Ocl Schedule", weekday: "*", hour: "*/1", minute: "0", job: "(cd /var/www/bartlby-ui/extensions/; php automated.php username=admin password=password script=OcL/cron.php)" }
+
+
+- name: Mark Installation
+  file: path=/usr/local/src/bartlby-ui.installed state=touch owner=root group=root mode=0777
+
+- name: restore Backup
+  shell: "{{ item }}"
+  with_items:
+    - cp -pva {{ backup_folder.stdout }}/ui-extra.conf  /var/www/bartlby-ui/ui-extra.conf
+    - cp -pva {{ backup_folder.stdout }}/rights/* /var/www/bartlby-ui/rights/
+    - cp -pva {{ backup_folder.stdout }}/store/* /var/www/bartlby-ui/store/
+  when: ui_installed.stat.exists == True
+
+- name: Fix ui permissions
+  file: path=/var/www/bartlby-ui/ recurse=true mode=0777
