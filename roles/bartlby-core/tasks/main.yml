@@ -28,6 +28,7 @@
     - cmake
     - liblua5.2-dev
     - libfile-slurp-perl
+    - python-mysqldb
 
 - name: "Add Bartlby Group"
   group: name=bartlby
@@ -50,10 +51,14 @@
   register: backup_folder
   when: core_installed.stat.exists == True
 
+- name: backup a mysql dump of core instance
+  mysql_db: name={{ bartlby_mysql_db }} login_user={{ bartlby_mysql_user }} login_password={{ bartlby_mysql_password }} login_host={{ bartlby_mysql_host }} state=dump target={{ backup_folder.stdout }}/mysql.dump
+  when: core_installed.stat.exists == True
+
 - name: Backup Core data before updating
   shell: "{{ item }}"
   with_items:
-    - echo mysqldump -h {{ bartlby_mysql_host }} -u {{  bartlby_mysql_user }} --password={{ bartlby_mysql_password }} {{ bartlby_mysql_db }} > {{ backup_folder.stdout }}/mysql.dump
+    #- echo mysqldump -h {{ bartlby_mysql_host }} -u {{  bartlby_mysql_user }} --password={{ bartlby_mysql_password }} {{ bartlby_mysql_db }} > {{ backup_folder.stdout }}/mysql.dump
     - cp /opt/bartlby/etc/bartlby.cfg {{ backup_folder.stdout }}/
   when: core_installed.stat.exists == True
 
@@ -79,9 +84,18 @@
   when: build_exists.stat.exists == False
 
 
+- name: check if db exists
+  mysql_db: name={{ bartlby_mysql_db }} login_user={{ bartlby_mysql_user }} login_password={{ bartlby_mysql_password }} login_host={{ bartlby_mysql_host }} state=present
+  register: db_exists
+
+#- name: test
+#  debug: var=db_exists
+
+
 - name: insert default database
-  shell: mysql -h {{ bartlby_mysql_host }} -u {{ bartlby_mysql_user }} --password={{ bartlby_mysql_password }} {{ bartlby_mysql_db }} < /usr/local/src/bartlby-core/mysql.shema;
-  when: core_installed.stat.exists == False
+  mysql_db: name={{ bartlby_mysql_db }} login_user={{ bartlby_mysql_user }} login_password={{ bartlby_mysql_password }} login_host={{ bartlby_mysql_host }} state=import target=/usr/local/src/bartlby-core/mysql.shema
+  #shell: mysql -h {{ bartlby_mysql_host }} -u {{ bartlby_mysql_user }} --password={{ bartlby_mysql_password }} {{ bartlby_mysql_db }} < /usr/local/src/bartlby-core/mysql.shema;
+  when: db_exists.changed == true
 
 
 - name: "Compile Bartlby-Core"
