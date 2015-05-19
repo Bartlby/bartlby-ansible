@@ -1,0 +1,40 @@
+---
+
+##
+## Install Bartlby-Plugins
+## and monitoring plugins
+##
+- name: Bartlby-Plugins Packages
+  apt:
+    pkg: "{{ item }}"
+    state: installed
+  with_items:
+    - nagios-plugins
+    - build-essential
+
+
+- name: "Get Bartlby-plugins Source"
+  git:
+    repo=https://github.com/Bartlby/bartlby-plugins.git
+    dest=/usr/local/src/bartlby-plugins/
+    version=master
+    update=yes
+    force=yes
+  register: plugin_source
+
+
+- name: build bartlby-plugins
+  shell: 'cd /usr/local/src/bartlby-plugins/;{{ item }}'
+  with_items:
+      - ./configure --prefix=/opt/bartlby-agent/plugins/
+      - make clean
+      - make install
+  when: plugin_source.changed
+
+- name: check if agent is installed
+  stat: path=/opt/bartlby-agent/plugins
+  register: agent_installed
+
+- name: copy monitoring-plugins to agent
+  shell: "rsync /usr/lib/nagios/plugins/ /opt/bartlby-agent/plugins/"
+  when: agent_installed.stat.exists == True
