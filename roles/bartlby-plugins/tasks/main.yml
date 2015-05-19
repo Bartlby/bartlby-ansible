@@ -11,6 +11,7 @@
   with_items:
     - nagios-plugins
     - build-essential
+    - git
 
 
 - name: "Get Bartlby-plugins Source"
