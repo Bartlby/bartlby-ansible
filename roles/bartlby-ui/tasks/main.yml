@@ -15,6 +15,7 @@
     - libncursesw5-dev
     - git
     - php-pear
+    - cron
 
 - name: "Add Bartlby Group"
   group: name=bartlby
