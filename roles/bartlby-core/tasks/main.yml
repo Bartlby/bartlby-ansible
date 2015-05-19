@@ -1,0 +1,138 @@
+---
+
+##
+## Install Bartlby-Agent
+##
+- name: Bartlby-core Packages
+  apt:
+    pkg: "{{ item }}"
+    state: installed
+  with_items:
+    - libjson0-dev
+    - libjson0
+    - libssl-dev
+    - libssh-dev
+    - libmysqlclient-dev
+    - autoconf
+    - gcc
+    - libsnmp-dev
+    - libtool
+    - make
+    - git
+    - ncurses-dev
+    - libncursesw5-dev
+    - wget
+    - rrdtool
+    - g++
+    - libcurl4-openssl-dev
+    - cmake
+    - liblua5.2-dev
+    - libfile-slurp-perl
+
+- name: "Add Bartlby Group"
+  group: name=bartlby
+
+
+- name: "Add Bartlby User"
+  user: name=bartlby comment="Bartlby" group=bartlby
+
+
+
+###check if already install
+- name: check installation state
+  stat: path=/usr/local/src/bartlby-core_new.installed
+  register: core_installed
+
+
+
+- name: Create Backup Folder
+  shell: "UQ=$$; mkdir -p /tmp/bartlby_backups.$UQ;echo /tmp/bartlby_backups.$UQ"
+  register: backup_folder
+  when: core_installed.stat.exists == True
+
+- name: Backup Core data before updating
+  shell: "{{ item }}"
+  with_items:
+    - echo mysqldump -h {{ bartlby_mysql_host }} -u {{  bartlby_mysql_user }} --password={{ bartlby_mysql_password }} {{ bartlby_mysql_db }} > {{ backup_folder.stdout }}/mysql.dump
+    - cp /opt/bartlby/etc/bartlby.cfg {{ backup_folder.stdout }}/
+  when: core_installed.stat.exists == True
+
+#- name: cleanup
+#  shell: rm -vfr /usr/local/src/bartlby-core
+
+- name: "Get Bartlby-core Source"
+  git:
+    repo=https://github.com/Bartlby/bartlby-core.git
+    dest=/usr/local/src/bartlby-core
+    version=development/stage
+    update=yes
+    force=yes
+
+  register: bartlby_core_source
+
+- name: check if build exists
+  stat: path=/usr/local/src/bartlby-core/build
+  register: build_exists
+
+- name: Create build Folder
+  action: file path=/usr/local/src/bartlby-core/build state=directory
+  when: build_exists.stat.exists == False
+
+
+- name: insert default database
+  shell: mysql -h {{ bartlby_mysql_host }} -u {{ bartlby_mysql_user }} --password={{ bartlby_mysql_password }} {{ bartlby_mysql_db }} < /usr/local/src/bartlby-core/mysql.shema;
+  when: core_installed.stat.exists == False
+
+
+- name: "Compile Bartlby-Core"
+  shell: 'cd /usr/local/src/bartlby-core/build;{{ item }}'
+  with_items:
+    - cmake -DPLUGIN_DIR="/opt/bartlby-agent/plugins/" -DBARTLBY_USER="root" -DMYSQL_HOST="{{ bartlby_mysql_host }}" -DMYSQL_USER={{ bartlby_mysql_user }} -DMYSQL_PASS={{ bartlby_mysql_password }} -DMYSQL_DB={{ bartlby_mysql_db }} -DCMAKE_INSTALL_PREFIX:PATH=/opt/bartlby -DFULL_FEATURES=1 ..
+    - make
+    - make install
+    - export BARTLBY_ENV_AUTO_INSTALL=1; export BARTLBY_ENV_MYSQL_USER="{{ bartlby_mysql_user }}"; export BARTLBY_ENV_MYSQL_DB="{{ bartlby_mysql_db }}"; export BARTLBY_ENV_MYSQL_PASSWORD="{{ bartlby_mysql_password }}"; export BARTLBY_ENV_MYSQL_HOST="{{ bartlby_mysql_host }}";  bash postinst
+
+  when: bartlby_core_source.changed
+
+
+- name: Add a working bartlby.cfg
+  template: src=bartlby.cfg.j2 dest=/opt/bartlby/etc/bartlby.cfg
+
+
+
+- name: Mark Installation
+  file: path=/usr/local/src/bartlby-core_new.installed state=touch owner=root group=root mode=0777
+
+- name: restore Backup
+  shell: "{{ item }}"
+  with_items:
+    - cp -pva {{ backup_folder.stdout }}/bartlby.cfg  /opt/bartlby/etc/
+#    - cp -pva {{ backup_folder.stdout }}/rights/* /var/www/bartlby-ui/rights/
+#    - cp -pva {{ backup_folder.stdout }}/store/* /var/www/bartlby-ui/store/
+  when: core_installed.stat.exists == True
+
+### update extensions
+
+- name: "Get Bartlby-core Extensions"
+  git:
+    repo=https://github.com/Bartlby/bartlby-extensions.git
+    dest=/usr/local/src/bartlby-extensions
+    version=development/stage
+    update=yes
+    force=yes
+  register: extension_source
+
+
+- name: "Compile Bartlby-extensions"
+  shell: 'cd /usr/local/src/bartlby-extensions;{{ item }}'
+  with_items:
+    - ./autogen.sh
+    - ./configure --prefix=/opt/bartlby-extensions
+    - make install
+  when: extension_source.changed or bartlby_core_source.changed
+
+- name: check history Folder
+  file: path=/opt/bartlby/var/log/history/ state=directory mode=0777
+
+- name: "Restart bartlby"
+  shell: "/opt/bartlby/etc/bartlby.startup restart"

@@ -61,11 +61,18 @@
     force: yes
     mode: 0644
 
+
+
+
 - name: "Install ncurses pecl"
   shell: "printf '\n'|pecl install ncurses"
   register: pecl_result
   changed_when: "pecl_result.rc == 0"
   failed_when: "not (('already installed' in pecl_result.stdout) or ('install ok:' in pecl_result.stdout))"
+
+- name: Symlink ncurses extension to enabled mods
+  file: src=/etc/php5/mods-available/ncurses.ini dest=/etc/php5/conf.d/ncurses.ini state=link
+
 
 - name: Remove default vhost 2.4
   file: path=/etc/apache2/sites-enabled/000-default state=absent

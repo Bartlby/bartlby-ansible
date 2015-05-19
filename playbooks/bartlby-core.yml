@@ -1,0 +1,22 @@
+---
+
+##
+## Install base configuration for all servers
+##
+
+- name: Install/Update Bartlby-Core
+  hosts: all
+  remote_user: root # It's important here
+  vars:
+    bartlby_mysql_user: root
+    bartlby_mysql_password: docker
+    bartlby_mysql_host: localhost
+    bartlby_msql_db: bartlby_ansible_new_n
+    mysql_root_password: docker
+    mysql_databases:
+      - name: bartlby_ansible_new_n
+        encoding: latin1
+        collation: latin1_general_ci
+
+  roles:
+    - bartlby-core
