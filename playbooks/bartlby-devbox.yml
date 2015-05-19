@@ -20,10 +20,10 @@
 
   roles:
     - bartlby-agent
-    - bartlby-ui
     - bartlby-php
     - bartlby-core
     - bartlby-plugins
+    - bartlby-ui
 
   post_tasks:
     - name: Update Deploy Script
