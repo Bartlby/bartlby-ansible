@@ -16,6 +16,14 @@
     - git
     - php-pear
     - cron
+    - php5-mcrypt
+    - php5-curl
+    - php-mail
+    - php-mail-mime
+    - php5-sqlite
+    - php5-mysql
+    - php-net-smtp
+
 
 - name: "Add Bartlby Group"
   group: name=bartlby

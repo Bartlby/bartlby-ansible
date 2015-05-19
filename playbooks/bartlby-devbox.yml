@@ -22,7 +22,19 @@
     - name: Update APT caches
       apt: update_cache=yes
 
-
+    - name: install devbox required packages
+      apt:
+        pkg: "{{ item }}"
+        state: installed
+        with_items:
+          apt: 
+            - git
+            - openbsd-inetd
+            - supervisor
+            - openssh-server
+            - wget
+            - cron
+            - vim
   roles:
     - bartlby-agent
     - bartlby-php
