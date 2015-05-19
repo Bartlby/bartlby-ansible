@@ -70,6 +70,9 @@
   changed_when: "pecl_result.rc == 0"
   failed_when: "not (('already installed' in pecl_result.stdout) or ('install ok:' in pecl_result.stdout))"
 
+- name: Check conf.d Folder
+  file: path=/etc/php5/conf.d/ state=directory
+
 - name: Symlink ncurses extension to enabled mods
   file: src=/etc/php5/mods-available/ncurses.ini dest=/etc/php5/conf.d/ncurses.ini state=link
 
