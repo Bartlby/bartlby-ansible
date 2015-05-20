@@ -51,5 +51,5 @@
 - name: Symlink bartlby extension to enabled mods
   file: src=/etc/php5/mods-available/bartlby.ini dest=/etc/php5/conf.d/bartlby.ini state=link
 
-- name: Enable Ncurses extensions
+- name: Enable bartlby extensions
   shell: php5enmod bartlby

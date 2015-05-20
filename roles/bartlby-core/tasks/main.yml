@@ -49,6 +49,14 @@
   register: backup_folder
   when: core_installed.stat.exists == True
 
+
+- name: check if db exists
+  mysql_db: name={{ bartlby_mysql_db }} login_user={{ bartlby_mysql_user }} login_password={{ bartlby_mysql_password }} login_host={{ bartlby_mysql_host }} state=present
+  register: db_exists
+
+- name: test
+  debug: var=db_exists
+
 - name: backup a mysql dump of core instance
   mysql_db: name={{ bartlby_mysql_db }} login_user={{ bartlby_mysql_user }} login_password={{ bartlby_mysql_password }} login_host={{ bartlby_mysql_host }} state=dump target={{ backup_folder.stdout }}/mysql.dump
   when: core_installed.stat.exists == True
@@ -82,12 +90,7 @@
   when: build_exists.stat.exists == False
 
 
-- name: check if db exists
-  mysql_db: name={{ bartlby_mysql_db }} login_user={{ bartlby_mysql_user }} login_password={{ bartlby_mysql_password }} login_host={{ bartlby_mysql_host }} state=present
-  register: db_exists
 
-- name: test
-  debug: var=db_exists
 
 
 - name: insert default database
