@@ -12,11 +12,9 @@
     bartlby_mysql_password: docker
     bartlby_mysql_host: localhost
     bartlby_mysql_db: bartlby
+
     mysql_root_password: docker
-    mysql_databases:
-      - name: bartlby
-        encoding: latin1
-        collation: latin1_general_ci
+
 
   roles:
     - bartlby-core

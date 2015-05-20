@@ -86,8 +86,8 @@
   mysql_db: name={{ bartlby_mysql_db }} login_user={{ bartlby_mysql_user }} login_password={{ bartlby_mysql_password }} login_host={{ bartlby_mysql_host }} state=present
   register: db_exists
 
-#- name: test
-#  debug: var=db_exists
+- name: test
+  debug: var=db_exists
 
 
 - name: insert default database
