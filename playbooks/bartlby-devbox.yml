@@ -13,7 +13,7 @@
     bartlby_mysql_host: localhost
     bartlby_mysql_db: bartlby
     mysql_root_password: docker
-    
+
   pre_tasks:
     - name: Update APT caches
       apt: update_cache=yes
@@ -28,6 +28,11 @@
         - wget
         - cron
         - vim
+  tasks:
+      - name: Enable SSH for root
+        lineinfile: destfile=/etc/ssh/sshd_config regexp="^PermitRootLogin" line="PermitRootLogin yes" state=present
+        notify:
+          - restart ssh
   roles:
     - bartlby-agent
     - bartlby-php
@@ -38,3 +43,23 @@
   post_tasks:
     - name: Update Deploy Script
       get_url: url=https://raw.githubusercontent.com/Bartlby/bartlby-docker/master/deploy.sh dest=/opt/bartlby/deploy.sh mode=0777
+
+    - name: get sample data file
+      get_url: url=https://raw.githubusercontent.com/Bartlby/bartlby-docker/master/populate_sample_data.php dest=/root/1.php
+      register: seed_change
+
+    - name: seed sample data
+      shell: cd /root; php 1.php
+      ignore_errors: true
+      notify: restart bartlby
+      when: seed_change.changed
+
+
+  handlers:
+    - name: restart ssh
+      sudo: yes
+      action: service name=ssh state=restarted enabled=yes
+
+    - name: restart bartlby
+      sudo: yes
+      shell: /opt/bartlby/etc/bartlby.startup restart
