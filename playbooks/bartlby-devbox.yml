@@ -57,9 +57,7 @@
 
   handlers:
     - name: restart ssh
-      sudo: yes
       action: service name=ssh state=restarted enabled=yes
 
     - name: restart bartlby
-      sudo: yes
       shell: /opt/bartlby/etc/bartlby.startup restart
