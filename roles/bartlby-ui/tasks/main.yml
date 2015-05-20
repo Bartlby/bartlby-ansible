@@ -85,9 +85,12 @@
 - name: Symlink ncurses extension to enabled mods
   file: src=/etc/php5/mods-available/ncurses.ini dest=/etc/php5/conf.d/ncurses.ini state=link
 
+- name: Enable Ncurses extensions
+  shell: php5enmod ncurses
+
 
 - name: Remove default vhost 2.4
-  file: path=/etc/apache2/sites-enabled/000-default state=absent
+  file: path=/etc/apache2/sites-enabled/000-default.conf state=absent
 
 - name: Remove default vhost 2.2
   file: path=/etc/apache2/sites-enabled/default state=absent
