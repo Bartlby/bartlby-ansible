@@ -64,7 +64,7 @@
 - name: Place NCURSES configuration file in place for apache2/cli
   template:
     src: ncurses.ini.j2
-    dest: "/etc/php5/mods-available/ncurses.ini"
+    dest: "/etc/php/mods-available/ncurses.ini"
     owner: root
     group: root
     force: yes
@@ -80,13 +80,13 @@
   failed_when: "not (('already installed' in pecl_result.stdout) or ('install ok:' in pecl_result.stdout))"
 
 - name: Check conf.d Folder
-  file: path=/etc/php5/conf.d/ state=directory
+  file: path=/etc/php/conf.d/ state=directory
 
 - name: Symlink ncurses extension to enabled mods
-  file: src=/etc/php5/mods-available/ncurses.ini dest=/etc/php5/conf.d/ncurses.ini state=link
+  file: src=/etc/php/mods-available/ncurses.ini dest=/etc/php/conf.d/ncurses.ini state=link
 
 - name: Enable Ncurses extensions
-  shell: php5enmod ncurses
+  shell: phpenmod ncurses
 
 
 - name: Remove default vhost 2.4
@@ -134,10 +134,10 @@
 - name: patch php.ini for short open tags
   shell: '{{ item }}'
   with_items:
-    - sed -i -e"s/^short_open_tag\s*=\s*Off/short_open_tag = On/" /etc/php5/apache2/php.ini
-    - sed -i -e"s/^short_open_tag\s*=\s*Off/short_open_tag = On/" /etc/php5/cli/php.ini
+    - sed -i -e"s/^short_open_tag\s*=\s*Off/short_open_tag = On/" /etc/php/apache2/php.ini
+    - sed -i -e"s/^short_open_tag\s*=\s*Off/short_open_tag = On/" /etc/php/cli/php.ini
 
-- name: remove pnp4nagios install.php5
+- name: remove pnp4nagios install.
   file: path=/opt/pnp4nagios/share/install.php state=absent
 
 - name: Create UI Cronjobs
