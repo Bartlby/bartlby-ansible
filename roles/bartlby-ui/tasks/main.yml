@@ -6,20 +6,20 @@
 - name: Bartlby-ui Packages
   apt: state=installed pkg={{ item }}
   with_items:
-    - libapache2-mod-php5
-    - php5-dev
+    - libapache2-mod-php
+    - php-dev
     - rrdtool
     - libncurses5-dev
     - libncursesw5-dev
     - git
     - php-pear
     - cron
-    - php5-mcrypt
-    - php5-curl
+    - php-mcrypt
+    - php-curl
     - php-mail
     - php-mail-mime
-    - php5-sqlite
-    - php5-mysql
+    - php-sqlite
+    - php-mysql
     - php-net-smtp
 
 
