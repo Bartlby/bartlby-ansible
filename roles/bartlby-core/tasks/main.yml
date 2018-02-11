@@ -6,8 +6,7 @@
 - name: Bartlby-core Packages
   apt: state=installed pkg={{ item }}
   with_items:
-    - libjson0-dev
-    - libjson0
+    - libjson-c-dev
     - libssl-dev
     - libssh-dev
     - libmysqlclient-dev
