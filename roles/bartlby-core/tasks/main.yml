@@ -22,6 +22,7 @@
     - rrdtool
     - g++
     - libcurl4-openssl-dev
+    - libssl1.0-dev
     - cmake
     - liblua5.2-dev
     - libfile-slurp-perl
