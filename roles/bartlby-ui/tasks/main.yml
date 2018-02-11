@@ -18,7 +18,7 @@
     - php-curl
     - php-mail
     - php-mail-mime
-    - php-sqlite
+    - php-sqlite3
     - php-mysql
     - php-net-smtp
 
