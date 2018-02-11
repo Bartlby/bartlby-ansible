@@ -64,7 +64,7 @@
 - name: Place NCURSES configuration file in place for apache2/cli
   template:
     src: ncurses.ini.j2
-    dest: "/etc/php/mods-available/ncurses.ini"
+    dest: "/etc/php/7.0/mods-available/ncurses.ini"
     owner: root
     group: root
     force: yes
@@ -80,10 +80,10 @@
   failed_when: "not (('already installed' in pecl_result.stdout) or ('install ok:' in pecl_result.stdout))"
 
 - name: Check conf.d Folder
-  file: path=/etc/php/conf.d/ state=directory
+  file: path=/etc/7.0/php/conf.d/ state=directory
 
 - name: Symlink ncurses extension to enabled mods
-  file: src=/etc/php/mods-available/ncurses.ini dest=/etc/php/conf.d/ncurses.ini state=link
+  file: src=/etc/7.0/php/mods-available/ncurses.ini dest=/etc/php/conf.d/ncurses.ini state=link
 
 - name: Enable Ncurses extensions
   shell: phpenmod ncurses
@@ -134,8 +134,8 @@
 - name: patch php.ini for short open tags
   shell: '{{ item }}'
   with_items:
-    - sed -i -e"s/^short_open_tag\s*=\s*Off/short_open_tag = On/" /etc/php/apache2/php.ini
-    - sed -i -e"s/^short_open_tag\s*=\s*Off/short_open_tag = On/" /etc/php/cli/php.ini
+    - sed -i -e"s/^short_open_tag\s*=\s*Off/short_open_tag = On/" /etc/php/7.0/apache2/php.ini
+    - sed -i -e"s/^short_open_tag\s*=\s*Off/short_open_tag = On/" /etc/php/7.0/cli/php.ini
 
 - name: remove pnp4nagios install.
   file: path=/opt/pnp4nagios/share/install.php state=absent
