@@ -61,32 +61,32 @@
 
   register: bartlby_ui_source
 
-- name: Place NCURSES configuration file in place for apache2/cli
-  template:
-    src: ncurses.ini.j2
-    dest: "/etc/php/7.0/mods-available/ncurses.ini"
-    owner: root
-    group: root
-    force: yes
-    mode: 0644
+#- name: Place NCURSES configuration file in place for apache2/cli
+#  template:
+#    src: ncurses.ini.j2
+#    dest: "/etc/php/7.0/mods-available/ncurses.ini"
+#    owner: root
+#    group: root
+#    force: yes
+#    mode: 0644
 
 
 
 
-- name: "Install ncurses pecl"
-  shell: "printf '\n'|pecl install ncurses"
-  register: pecl_result
-  changed_when: "pecl_result.rc == 0"
-  failed_when: "not (('already installed' in pecl_result.stdout) or ('install ok:' in pecl_result.stdout))"
+#- name: "Install ncurses pecl"
+#  shell: "printf '\n'|pecl install ncurses"
+#  register: pecl_result
+#  changed_when: "pecl_result.rc == 0"
+#  failed_when: "not (('already installed' in pecl_result.stdout) or ('install ok:' in pecl_result.stdout))"#
 
 - name: Check conf.d Folder
   file: path=/etc/7.0/php/conf.d/ state=directory
 
-- name: Symlink ncurses extension to enabled mods
-  file: src=/etc/7.0/php/mods-available/ncurses.ini dest=/etc/php/conf.d/ncurses.ini state=link
+#- name: Symlink ncurses extension to enabled mods
+#  file: src=/etc/7.0/php/mods-available/ncurses.ini dest=/etc/php/conf.d/ncurses.ini state=link
 
-- name: Enable Ncurses extensions
-  shell: phpenmod ncurses
+#- name: Enable Ncurses extensions
+#  shell: phpenmod ncurses
 
 
 - name: Remove default vhost 2.4
