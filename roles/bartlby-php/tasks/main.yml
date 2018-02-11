@@ -10,8 +10,8 @@
     - build-essential
     - cmake
     - libssl-dev
-    - libjson0-dev
-    - php5-dev
+    - libjson-c-dev
+    - php-dev
     - git
 
 
