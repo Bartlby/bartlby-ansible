@@ -9,7 +9,7 @@
     - libjson-c-dev
     - libssl-dev
     - libssh-dev
-    - libmysqlclient-dev
+    - default-libmysqlclient-dev
     - autoconf
     - gcc
     - libsnmp-dev
